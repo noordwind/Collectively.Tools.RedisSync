@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Collectively.Common.Caching;
 using Collectively.Common.Mongo;
+using Collectively.Services.Storage.Models.Groups;
 using Collectively.Services.Storage.Models.Remarks;
 using Collectively.Services.Storage.Models.Users;
 using Microsoft.Extensions.Caching.Distributed;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace Collectively.Tools.RedisSync.Framework
 {
@@ -32,6 +34,25 @@ namespace Collectively.Tools.RedisSync.Framework
             var remarks = await _database.GetCollection<Remark>()
                 .AsQueryable()
                 .ToListAsync();
+
+            var groups = new HashSet<Group>();
+            
+            foreach(var remark in remarks)
+            {
+                if(remark.Group != null)
+                {
+                    var group = groups.SingleOrDefault(x => x.Id == remark.Group.Id);
+                    if (group == null)
+                    {
+                        group = await _database.GetCollection<Group>()
+                            .AsQueryable()
+                            .FirstOrDefaultAsync(x => x.Id == remark.Group.Id);
+                        groups.Add(group);
+                    }
+                    remark.Group.Criteria = group.Criteria;
+                    remark.Group.Members = group.Members.ToDictionary(x => x.UserId, x => x.Role);
+                }
+            }
 
             var latestRemarks = remarks.OrderByDescending(x => x.CreatedAt).Take(100);
             foreach (var remark in latestRemarks)
