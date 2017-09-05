@@ -26,7 +26,10 @@ namespace Collectively.Tools.RedisSync.Framework
         }
 
         public async Task SynchronizeAsync()
-        => await Task.WhenAll(new List<Task> {SyncRemarksAsync(), SyncUsersAsync()});
+        => await Task.WhenAll(new List<Task> 
+            { SyncRemarksAsync(), SyncCategoriesAsync(), SyncTagsAsync(), 
+              SyncUsersAsync(), SyncGroupsAsync(), SyncOrganizationsAsync()
+            });
 
         private async Task SyncRemarksAsync()
         {
@@ -68,6 +71,58 @@ namespace Collectively.Tools.RedisSync.Framework
             Console.WriteLine("Synchronizing remarks has completed.");
         }
 
+        private async Task SyncCategoriesAsync()
+        {
+            Console.WriteLine("Synchronizing categories...");
+            var categories = await _database.GetCollection<RemarkCategory>()
+                .AsQueryable()
+                .ToListAsync();
+            foreach (var category in categories)
+            {
+                await _cache.AddToSetAsync($"categories", category);
+            }
+            Console.WriteLine("Synchronizing categories has completed.");            
+        }
+
+        private async Task SyncTagsAsync()
+        {
+            var tags = await _database.GetCollection<Collectively.Services.Storage.Models.Remarks.Tag>()
+                .AsQueryable()
+                .ToListAsync();
+            Console.WriteLine($"Tags: {string.Join(",", tags.Select(x => x.Name))}");
+            foreach (var tag in tags)
+            {
+                await _cache.AddToSetAsync($"tags", tag);
+            }
+            Console.WriteLine("Synchronizing tags has completed.");            
+        }
+
+        private async Task SyncOrganizationsAsync()
+        {
+            Console.WriteLine("Synchronizing organizations...");
+            var organizations = await _database.GetCollection<Organization>()
+                .AsQueryable()
+                .ToListAsync();
+            foreach (var organization in organizations)
+            {
+                await _cache.AddAsync($"organizations:{organization.Id}", organization);
+            }
+            Console.WriteLine("Synchronizing organizations has completed.");            
+        }
+
+        private async Task SyncGroupsAsync()
+        {
+            Console.WriteLine("Synchronizing groups...");
+            var groups = await _database.GetCollection<Group>()
+                .AsQueryable()
+                .ToListAsync();
+            foreach (var group in groups)
+            {
+                await _cache.AddAsync($"groups:{group.Id}", group);
+            }
+            Console.WriteLine("Synchronizing groups has completed.");            
+        }
+
         private async Task SyncUsersAsync()
         {
             Console.WriteLine("Synchronizing users...");
@@ -77,6 +132,7 @@ namespace Collectively.Tools.RedisSync.Framework
             foreach (var user in users)
             {
                 await _cache.AddAsync($"users:{user.UserId}:state", user.State);
+                await _cache.AddAsync($"users:{user.UserId}", user);
             }
             Console.WriteLine("Synchronizing users has completed.");            
         }
