@@ -45,7 +45,7 @@ Please edit the *appsettings.json* file in order to use the custom application s
 
 **Tech stack**
 ----------------
-- **[.NET Core](https://dotnet.github.io)** - an open source & cross-platform framework for building applications using C# language.service bus.
+- **[.NET Core](https://dotnet.github.io)** - an open source & cross-platform framework for building applications using C# language.
 
 **Solution structure**
 ----------------
