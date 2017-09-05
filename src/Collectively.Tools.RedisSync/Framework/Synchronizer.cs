@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Collectively.Common.Caching;
 using Collectively.Common.Mongo;
 using Collectively.Services.Storage.Models.Groups;
+using Collectively.Services.Storage.Models.Notifications;
 using Collectively.Services.Storage.Models.Remarks;
 using Collectively.Services.Storage.Models.Users;
 using Microsoft.Extensions.Caching.Distributed;
@@ -28,7 +29,8 @@ namespace Collectively.Tools.RedisSync.Framework
         public async Task SynchronizeAsync()
         => await Task.WhenAll(new List<Task> 
             { SyncRemarksAsync(), SyncCategoriesAsync(), SyncTagsAsync(), 
-              SyncUsersAsync(), SyncGroupsAsync(), SyncOrganizationsAsync()
+              SyncUsersAsync(), SyncGroupsAsync(), SyncOrganizationsAsync(),
+              SyncUserNotificationSettingsAsync()
             });
 
         private async Task SyncRemarksAsync()
@@ -86,10 +88,10 @@ namespace Collectively.Tools.RedisSync.Framework
 
         private async Task SyncTagsAsync()
         {
+            Console.WriteLine("Synchronizing tags..."); 
             var tags = await _database.GetCollection<Collectively.Services.Storage.Models.Remarks.Tag>()
                 .AsQueryable()
                 .ToListAsync();
-            Console.WriteLine($"Tags: {string.Join(",", tags.Select(x => x.Name))}");
             foreach (var tag in tags)
             {
                 await _cache.AddToSetAsync($"tags", tag);
@@ -135,6 +137,19 @@ namespace Collectively.Tools.RedisSync.Framework
                 await _cache.AddAsync($"users:{user.UserId}", user);
             }
             Console.WriteLine("Synchronizing users has completed.");            
+        }
+
+        private async Task SyncUserNotificationSettingsAsync()
+        {
+            Console.WriteLine("Synchronizing users notification settings...");
+            var notificationSettings = await _database.GetCollection<UserNotificationSettings>()
+                .AsQueryable()
+                .ToListAsync();
+            foreach (var settings in notificationSettings)
+            {
+                await _cache.AddAsync($"users:{settings.UserId}:notifications:settings", settings);
+            }
+            Console.WriteLine("Synchronizing users notification settings has completed.");            
         }
     }
 }
