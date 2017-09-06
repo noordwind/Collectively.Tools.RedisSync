@@ -59,6 +59,13 @@ namespace Collectively.Tools.RedisSync.Framework
                 }
             }
 
+            var usersRemarks = remarks.GroupBy(x => x.Author.UserId);
+            foreach (var userRemarks in usersRemarks)
+            {
+                await _cache.AddManyToSetAsync($"users:{userRemarks.Key}:remarks", 
+                    userRemarks.Select(x => x.Id.ToString()));
+            }
+
             var latestRemarks = remarks.OrderByDescending(x => x.CreatedAt).Take(100);
             foreach (var remark in latestRemarks)
             {
