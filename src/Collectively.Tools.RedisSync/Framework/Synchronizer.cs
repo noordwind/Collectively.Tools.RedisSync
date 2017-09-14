@@ -41,7 +41,6 @@ namespace Collectively.Tools.RedisSync.Framework
                 .ToListAsync();
 
             var groups = new HashSet<Group>();
-            
             foreach(var remark in remarks)
             {
                 if(remark.Group != null)
@@ -57,11 +56,13 @@ namespace Collectively.Tools.RedisSync.Framework
                     remark.Group.Criteria = group.Criteria;
                     remark.Group.Members = group.Members.ToDictionary(x => x.UserId, x => x.Role);
                 }
+                remark.PositiveVotesCount = remark.Votes?.Count(x => x.Positive) ?? 0;
+                remark.NegativeVotesCount = remark.Votes?.Count(x => !x.Positive) ?? 0;
             }
 
             var usersRemarks = remarks.GroupBy(x => x.Author.UserId);
             foreach (var userRemarks in usersRemarks)
-            {
+            {   
                 await _cache.AddManyToSetAsync($"users:{userRemarks.Key}:remarks", 
                     userRemarks.Select(x => x.Id.ToString()));
             }
