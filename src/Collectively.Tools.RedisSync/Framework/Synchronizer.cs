@@ -51,6 +51,10 @@ namespace Collectively.Tools.RedisSync.Framework
                         group = await _database.GetCollection<Group>()
                             .AsQueryable()
                             .FirstOrDefaultAsync(x => x.Id == remark.Group.Id);
+                        if (group == null)
+                        {
+                            continue;
+                        }
                         groups.Add(group);
                     }
                     remark.Group.Criteria = group.Criteria;
