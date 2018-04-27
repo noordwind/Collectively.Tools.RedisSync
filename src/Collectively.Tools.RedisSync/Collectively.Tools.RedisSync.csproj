@@ -1,16 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\Collectively.Common\src\Collectively.Common\Collectively.Common.csproj" />
+    <ProjectReference Include="..\..\..\Collectively.Services.Storage\src\Collectively.Services.Storage.Models\Collectively.Services.Storage.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <PackageReference Include="Collectively.Common" Version="2.0.*" />
     <PackageReference Include="Collectively.Services.Storage.Models" Version="2.0.*" />
-    <PackageReference Include="Autofac" Version="4.6.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.4.4" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
-
 </Project>

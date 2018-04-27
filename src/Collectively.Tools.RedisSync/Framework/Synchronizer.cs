@@ -60,6 +60,10 @@ namespace Collectively.Tools.RedisSync.Framework
                     remark.Group.Criteria = group.Criteria;
                     remark.Group.Members = group.Members.ToDictionary(x => x.UserId, x => x.Role);
                 }
+                if (remark.Tags?.Count > 0)
+                {
+                    remark.SelectedTag = remark.Tags.First().Name;
+                }
                 remark.PositiveVotesCount = remark.Votes?.Count(x => x.Positive) ?? 0;
                 remark.NegativeVotesCount = remark.Votes?.Count(x => !x.Positive) ?? 0;
             }
